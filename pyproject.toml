@@ -35,7 +35,7 @@ dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.6"]
 
 [project.urls]
 Homepage = "https://omnibook.xyz"
-Documentation = "https://docs.omnibook.xyz"
+Documentation = "https://docs.omnibook.xyz/sdk/python"
 Repository = "https://github.com/OmniBook-HQ/python-sdk"
 Issues = "https://github.com/OmniBook-HQ/python-sdk/issues"
 Changelog = "https://github.com/OmniBook-HQ/python-sdk/blob/main/CHANGELOG.md"

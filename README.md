@@ -165,9 +165,9 @@ with client.websocket() as ws:            # trade-ws-auth: public and private ch
     ws.subscribe("book_updates", tickers=[ticker])
     sub = ws.subscribe("private")         # orders, fills, balance, positions, ledger…
     for message in ws:
-        if message["type"] in ("book_snapshot", "book_update") and not book.apply(message):
-            ws.request_snapshot(ticker)   # a gap in book_seq: ask for a fresh book
-        elif message["type"] == "fill":
+        if not book.apply(message):       # pass every message; False means a gap in book_seq
+            ws.request_snapshot(ticker)   # ask for a fresh book
+        if message["type"] == "fill":
             print("filled", message["count"], "at", message["price"])
 ```
 
@@ -177,9 +177,14 @@ with client.websocket() as ws:            # trade-ws-auth: public and private ch
 - Market channels take `tickers` or `series_tickers`. A series subscription also covers each
   new market as it opens.
 - `index` takes `codes`, for example `["BTC"]`.
-- The private feed has no snapshot. After every connect, read open orders, balance and positions
-  over REST, then apply the feed. A REST answer whose `event_seq` is at least the `seq` of the
-  private `subscribed` misses nothing.
+- `OrderBook.apply` ignores other markets and message types, and marks the book unsynced on
+  `book_unavailable`, so give it every message.
+- The private feed has no snapshot. After every connect, subscribe first and keep `sub["seq"]`.
+  Then read open orders, balance and positions over REST. A REST answer whose `.event_seq` is at
+  least `sub["seq"]` misses nothing; a lower one is behind, so read it again. Keep the messages
+  that arrive meanwhile, in feed order. Skip each one whose `seq` is at or below the REST
+  answer's `.event_seq`, since the answer already holds it, and apply the rest after the REST
+  state, so an older message never replaces a newer one.
 - After any reconnect, subscribe again. The close codes are in `omnibook.websocket`'s docstring.
 
 The async version is `async with async_client.websocket() as ws:` / `async for message in ws:`.
