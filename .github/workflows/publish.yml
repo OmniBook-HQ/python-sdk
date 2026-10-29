@@ -1,0 +1,43 @@
+name: Publish to PyPI
+
+# Runs when a GitHub release is published (tag vX.Y.Z). PyPI trusts this workflow through
+# Trusted Publishing: project `omnibook`, repository OmniBook-HQ/python-sdk, workflow
+# publish.yml, environment pypi. No token is stored anywhere.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          activate-environment: true
+      - name: Check the tag matches the version
+        if: github.event_name == 'release'
+        run: |
+          version=$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)
+          test "v$version" = "${{ github.event.release.tag_name }}"
+      - run: uv pip install -e ".[dev]" && pytest -q
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
