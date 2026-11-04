@@ -1,30 +1,40 @@
 name: Publish to PyPI
 
-# Runs when a GitHub release is published (tag vX.Y.Z). PyPI trusts this workflow through
+# Runs only when a GitHub release is published (tag vX.Y.Z). There is no manual trigger, so
+# every upload goes through the tag/version check below. PyPI trusts this workflow through
 # Trusted Publishing: project `omnibook`, repository OmniBook-HQ/python-sdk, workflow
-# publish.yml, environment pypi. No token is stored anywhere.
+# publish.yml, environment pypi. No token is stored anywhere. The pypi environment only
+# accepts v* tags and needs a reviewer's approval before the publish job runs.
 on:
   release:
     types: [published]
-  workflow_dispatch:
+
+permissions: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
         with:
           python-version: "3.12"
           activate-environment: true
+          # A release build must not restore a cache that another run could have written.
+          enable-cache: false
       - name: Check the tag matches the version
-        if: github.event_name == 'release'
+        env:
+          TAG: ${{ github.event.release.tag_name }}
         run: |
           version=$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)
-          test "v$version" = "${{ github.event.release.tag_name }}"
+          test "v$version" = "$TAG"
       - run: uv pip install -e ".[dev]" && pytest -q
       - run: uv build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dist
           path: dist/
@@ -36,8 +46,8 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: dist
           path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
