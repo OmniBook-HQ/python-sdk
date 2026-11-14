@@ -80,7 +80,8 @@ def _resolve(env: Environment | str | None, stacklevel: int) -> Environment:
         try:
             found = ENVIRONMENTS[env.lower()]
         except KeyError:
-            raise ValueError(f"unknown environment {env!r}: one of {sorted(ENVIRONMENTS)}") from None
+            names = sorted(n for n in ENVIRONMENTS if n != _DEMO.name)  # the retired demo is not offered
+            raise ValueError(f"unknown environment {env!r}: one of {names}") from None
     if found is _DEMO:
         _demo(stacklevel=stacklevel + 1)
     return found

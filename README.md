@@ -96,16 +96,21 @@ with `environment="sandbox"` and a sandbox key.
 Accounts and keys do not cross over: a mainnet key does not work on the sandbox, and a sandbox
 key does not work on mainnet.
 
-**Everything resets every day at 00:00 UTC.** Accounts, profiles, **API keys**, orders, fills,
-positions and balances are deleted, and the exchange starts again, empty. For a few minutes the API
-answers `503` with `Retry-After` and the WebSockets close; wait as asked rather than retrying in a
-tight loop. After that your old key gets `401 unauthenticated`, for good. No program can recover by
-itself: a person signs up again (a new $10,000), fills in the identity again and makes a new key.
-Plan for your bot to stop at 00:00 UTC.
+**Everything resets every day at 00:00 UTC, and at any other restart of the sandbox** (an upgrade
+to follow mainnet, or recovery from a crash). Accounts, profiles, **API keys**, orders, fills,
+positions and balances are deleted, and the exchange starts again, empty. For up to about 10 minutes
+the API answers `503` with `Retry-After` and the WebSockets close; wait as asked rather than retrying
+in a tight loop. After that your old key gets `401 unauthenticated`, for good. No program can recover
+by itself: a person signs up again (a new $10,000), fills in the identity again and makes a new key.
+Plan for your bot to stop at 00:00 UTC, and at any other restart.
+
+Markets: **the BTC 5-minute strike ladder only** (series `BTC-5M`): each 5-minute window has 7
+strikes $50 apart, for example `BTC-5M-26NOV14-0955-T67400`. There is no 60-second series. A house
+liquidity bot quotes both sides of every open strike so the books are not empty; its quotes are
+not a fair price.
 
 The sandbox is one server: its latency is not mainnet's, it has no uptime guarantee, and it has its
-own per-IP rate limits, counted apart from mainnet's. A house market maker quotes every open market
-so the books are not empty; its quotes are not a fair price.
+own per-IP rate limits, counted apart from mainnet's.
 
 With 2.0.0, which has no `SANDBOX`, build the same environment yourself:
 

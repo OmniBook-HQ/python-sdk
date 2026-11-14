@@ -7,7 +7,8 @@ Added:
 - `SANDBOX`, the public API sandbox: `Client(environment="sandbox")` or `environment=omnibook.SANDBOX`.
   REST on `https://test-api.omnibook.xyz`, feeds on `wss://test-ws.omnibook.xyz/v1` and
   `wss://test-ws-auth.omnibook.xyz/v1`. Same API as mainnet with test money only; everything,
-  API keys included, resets every day at 00:00 UTC. The default stays `mainnet`.
+  API keys included, resets every day at 00:00 UTC and at any other restart of the sandbox.
+  The default stays `mainnet`.
   On 2.0.0, pass the same hosts as `Environment(name="sandbox", ...)` (README, "Testing on the sandbox").
 
 Deprecated:
@@ -16,6 +17,8 @@ Deprecated:
   are retired and no longer answer. Reading `omnibook.DEMO` (or `omnibook.environments.DEMO`) and
   resolving `"demo"` still work but emit a `DeprecationWarning` pointing at the caller; use
   `"sandbox"`. `DEMO` will be removed in a future major version. Importing `omnibook` does not warn.
+  `DEMO` is no longer in `omnibook.__all__`, so `from omnibook import *` neither warns nor brings it in,
+  and the error for an unknown environment names only `mainnet` and `sandbox`.
 
 ## 2.0.0 (2026-10-28)
 

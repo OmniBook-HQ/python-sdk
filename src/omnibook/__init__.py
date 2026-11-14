@@ -30,7 +30,6 @@ from .orderbook import OrderBook
 from .websocket import AsyncWebSocket, WebSocket
 
 __all__ = [
-    "DEMO",
     "MAINNET",
     "SANDBOX",
     "ApiError",

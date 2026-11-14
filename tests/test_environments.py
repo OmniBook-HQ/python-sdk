@@ -29,8 +29,9 @@ def test_resolve_keeps_the_others():
 
 
 def test_unknown_environment_names_the_sandbox():
-    with pytest.raises(ValueError, match="sandbox"):
+    with pytest.raises(ValueError, match="sandbox") as err:
         resolve("testnet")
+    assert "demo" not in str(err.value)
 
 
 def test_sandbox_is_exported():
@@ -160,3 +161,12 @@ def test_a_custom_environment_named_demo_does_not_warn():
 def test_unknown_attribute_still_raises():
     with pytest.raises(AttributeError):
         omnibook.NOPE  # noqa: B018
+
+
+def test_star_import_does_not_warn_or_export_demo():
+    assert "DEMO" not in omnibook.__all__
+    namespace = {}
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        exec("from omnibook import *", namespace)
+    assert "SANDBOX" in namespace and "DEMO" not in namespace
