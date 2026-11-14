@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.0 (unreleased)
+
+Added:
+
+- `SANDBOX`, the public API sandbox: `Client(environment="sandbox")` or `environment=omnibook.SANDBOX`.
+  REST on `https://test-api.omnibook.xyz`, feeds on `wss://test-ws.omnibook.xyz/v1` and
+  `wss://test-ws-auth.omnibook.xyz/v1`. Same API as mainnet with test money only; everything,
+  API keys included, resets every day at 00:00 UTC. The default stays `mainnet`.
+  On 2.0.0, pass the same hosts as `Environment(name="sandbox", ...)` (README, "Testing on the sandbox").
+
 ## 2.0.0 (2026-10-28)
 
 A new client for the new Omnibook exchange at `trade-api.omnibook.xyz`. It supersedes 1.x, which

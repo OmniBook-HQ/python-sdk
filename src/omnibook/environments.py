@@ -39,7 +39,15 @@ DEMO = Environment(
     ws_auth_url="wss://demo-ws-auth.omnibook.xyz/v1",
 )
 
-ENVIRONMENTS = {env.name: env for env in (MAINNET, DEMO)}
+# The public API sandbox: mainnet's code with test money only, wiped every day at 00:00 UTC.
+SANDBOX = Environment(
+    name="sandbox",
+    rest_url="https://test-api.omnibook.xyz",
+    ws_url="wss://test-ws.omnibook.xyz/v1",
+    ws_auth_url="wss://test-ws-auth.omnibook.xyz/v1",
+)
+
+ENVIRONMENTS = {env.name: env for env in (MAINNET, SANDBOX, DEMO)}
 
 
 def resolve(env: Environment | str | None) -> Environment:

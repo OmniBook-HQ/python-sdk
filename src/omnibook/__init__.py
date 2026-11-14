@@ -10,7 +10,7 @@ from ._endpoints import new_client_order_id
 from ._signing import Signer, generate_key_pem, signing_text
 from ._version import __version__
 from .client import AsyncClient, Client
-from .environments import DEMO, MAINNET, Environment
+from .environments import DEMO, MAINNET, SANDBOX, Environment
 from .errors import (
     ApiError,
     AuthenticationError,
@@ -31,6 +31,7 @@ from .websocket import AsyncWebSocket, WebSocket
 __all__ = [
     "DEMO",
     "MAINNET",
+    "SANDBOX",
     "ApiError",
     "AsyncClient",
     "AsyncWebSocket",
