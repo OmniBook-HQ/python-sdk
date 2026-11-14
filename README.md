@@ -82,10 +82,11 @@ everything, pass `environment=`: a name above, or your own `Environment(...)`.
 
 ### Testing on the sandbox
 
-The sandbox is a copy of the exchange for testing trading programs. It runs the same code as
-mainnet, with **test money only**: no deposit, no withdrawal, no payout. Paths, signing, error
-codes and WebSocket channels are the same as on mainnet, so a bot written for mainnet runs there
-with `environment="sandbox"` and a sandbox key.
+The sandbox is a copy of the exchange for testing trading programs, with **test money only**: no
+deposit, no withdrawal, no payout. It runs the same versions as mainnet. After a mainnet release it is
+updated by hand, so for a while it can run the previous version. An update is a restart and resets
+all data, like the daily reset. Paths, signing, error codes and WebSocket channels are the same as
+on mainnet, so a bot written for mainnet runs there with `environment="sandbox"` and a sandbox key.
 
 1. Sign up at [test.omnibook.xyz](https://test.omnibook.xyz). If the page asks for an invite code,
    use the one in the banner at the top of the page. Every new account gets **$10,000 of test money**.
@@ -96,8 +97,8 @@ with `environment="sandbox"` and a sandbox key.
 Accounts and keys do not cross over: a mainnet key does not work on the sandbox, and a sandbox
 key does not work on mainnet.
 
-**Everything resets every day at 00:00 UTC, and at any other restart of the sandbox** (an upgrade
-to follow mainnet, or recovery from a crash). Accounts, profiles, **API keys**, orders, fills,
+**Everything resets every day at 00:00 UTC, and at any other restart of the sandbox** (an update
+to mainnet's version, or recovery from a crash). Accounts, profiles, **API keys**, orders, fills,
 positions and balances are deleted, and the exchange starts again, empty. For up to about 10 minutes
 the API answers `503` with `Retry-After` and the WebSockets close; wait as asked rather than retrying
 in a tight loop. After that your old key gets `401 unauthenticated`, for good. No program can recover
