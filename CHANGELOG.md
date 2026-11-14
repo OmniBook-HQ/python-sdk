@@ -10,6 +10,13 @@ Added:
   API keys included, resets every day at 00:00 UTC. The default stays `mainnet`.
   On 2.0.0, pass the same hosts as `Environment(name="sandbox", ...)` (README, "Testing on the sandbox").
 
+Deprecated:
+
+- `DEMO` / `environment="demo"`: the demo hosts (`demo-api.`, `demo-ws.`, `demo-ws-auth.omnibook.xyz`)
+  are retired and no longer answer. Reading `omnibook.DEMO` (or `omnibook.environments.DEMO`) and
+  resolving `"demo"` still work but emit a `DeprecationWarning` pointing at the caller; use
+  `"sandbox"`. `DEMO` will be removed in a future major version. Importing `omnibook` does not warn.
+
 ## 2.0.0 (2026-10-28)
 
 A new client for the new Omnibook exchange at `trade-api.omnibook.xyz`. It supersedes 1.x, which

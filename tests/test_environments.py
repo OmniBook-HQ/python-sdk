@@ -1,8 +1,10 @@
+import warnings
+
 import pytest
 
 import omnibook
-from omnibook import DEMO, MAINNET, SANDBOX, AsyncClient, Client, Environment
-from omnibook.environments import ENVIRONMENTS, resolve
+from omnibook import MAINNET, SANDBOX, AsyncClient, Client, Environment
+from omnibook.environments import _DEMO, ENVIRONMENTS, resolve
 
 
 def test_sandbox_hosts():
@@ -21,7 +23,8 @@ def test_resolve_sandbox_by_name(name):
 def test_resolve_keeps_the_others():
     assert resolve(None) is MAINNET
     assert resolve("mainnet") is MAINNET
-    assert resolve("demo") is DEMO
+    with pytest.warns(DeprecationWarning):
+        assert resolve("demo") is _DEMO
     assert set(ENVIRONMENTS) == {"mainnet", "sandbox", "demo"}
 
 
@@ -69,3 +72,91 @@ def test_sandbox_feeds():
     with Client(environment="sandbox") as client:
         assert client._ws_args(private=False)["url"] == "wss://test-ws.omnibook.xyz/v1"
         assert client._ws_args(private=True)["url"] == "wss://test-ws-auth.omnibook.xyz/v1"
+
+
+# The demo hosts are retired: DEMO still works, with a DeprecationWarning that points at the caller.
+
+
+def test_importing_omnibook_does_not_warn():
+    import importlib
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        importlib.reload(omnibook)
+        from omnibook import SANDBOX as again  # noqa: F401
+
+
+def _one_warning(record):
+    # ``from omnibook import DEMO`` reads the attribute twice (CPython's fromlist check on a package),
+    # so it may record twice; both are at the same line, and the default filter shows it once.
+    assert len(record) >= 1
+    assert len({(w.filename, w.lineno) for w in record}) == 1
+    for w in record:
+        assert issubclass(w.category, DeprecationWarning)
+        assert "retired" in str(w.message) and "sandbox" in str(w.message)
+        assert w.filename == __file__, w.filename  # the caller's line, not the SDK's
+
+
+def test_omnibook_demo_warns():
+    with pytest.warns(DeprecationWarning) as record:
+        env = omnibook.DEMO
+    assert env is _DEMO and env.rest_url == "https://demo-api.omnibook.xyz"
+    _one_warning(record)
+
+
+def test_from_import_demo_warns():
+    with pytest.warns(DeprecationWarning) as record:
+        from omnibook import DEMO
+    assert DEMO is _DEMO
+    _one_warning(record)
+
+
+def test_environments_demo_warns():
+    from omnibook import environments
+
+    with pytest.warns(DeprecationWarning) as record:
+        assert environments.DEMO is _DEMO
+    _one_warning(record)
+
+
+@pytest.mark.parametrize("name", ["demo", "DEMO"])
+def test_resolve_demo_warns(name):
+    with pytest.warns(DeprecationWarning) as record:
+        assert resolve(name) is _DEMO
+    _one_warning(record)
+
+
+@pytest.mark.parametrize("environment", ["demo", _DEMO])
+def test_client_on_demo_warns_at_the_callers_line(environment):
+    with pytest.warns(DeprecationWarning) as record:
+        client = Client(environment=environment)
+    client.close()
+    assert client.base_url == "https://demo-api.omnibook.xyz"
+    _one_warning(record)
+
+
+async def test_async_client_on_demo_warns():
+    with pytest.warns(DeprecationWarning) as record:
+        client = AsyncClient(environment="demo")
+    await client.aclose()
+    _one_warning(record)
+
+
+@pytest.mark.parametrize("environment", [None, "mainnet", "sandbox", SANDBOX])
+def test_other_environments_do_not_warn(environment):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        Client(environment=environment).close()
+        resolve(environment)
+
+
+def test_a_custom_environment_named_demo_does_not_warn():
+    mine = Environment(name="demo", rest_url="http://127.0.0.1:8080", ws_url="ws://x", ws_auth_url="ws://y")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        assert resolve(mine) is mine
+
+
+def test_unknown_attribute_still_raises():
+    with pytest.raises(AttributeError):
+        omnibook.NOPE  # noqa: B018

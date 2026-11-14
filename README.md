@@ -67,16 +67,15 @@ Public reads (`get_markets`, `get_orderbook`, `get_trades` and the rest) need no
 |---|---|---|---|
 | `mainnet` (default) | `https://trade-api.omnibook.xyz` | `wss://trade-ws.omnibook.xyz/v1` | `wss://trade-ws-auth.omnibook.xyz/v1` |
 | `sandbox` | `https://test-api.omnibook.xyz` | `wss://test-ws.omnibook.xyz/v1` | `wss://test-ws-auth.omnibook.xyz/v1` |
-| `demo` | `https://demo-api.omnibook.xyz` | `wss://demo-ws.omnibook.xyz/v1` | `wss://demo-ws-auth.omnibook.xyz/v1` |
 
 ```python
-client = Client(signer=signer, environment="sandbox")                # or environment=omnibook.SANDBOX
-client = Client(signer=signer, environment="demo",
-                headers={"CF-Access-Client-Id": "...", "CF-Access-Client-Secret": "..."})
+client = Client(signer=signer, environment="sandbox")               # or environment=omnibook.SANDBOX
 client = Client(signer=signer, base_url="http://127.0.0.1:8080")   # your own host
 ```
 
-The demo hosts sit behind Cloudflare Access, so send its service-token headers there.
+**`demo` is retired.** Its hosts (`demo-api.`, `demo-ws.`, `demo-ws-auth.omnibook.xyz`) no longer
+answer. `environment="demo"` and `omnibook.DEMO` still import, but emit a `DeprecationWarning`
+and will be removed in a future major version. Test on `sandbox` instead.
 
 `base_url` moves REST only; `client.websocket()` still opens the environment's feeds. To move
 everything, pass `environment=`: a name above, or your own `Environment(...)`.
