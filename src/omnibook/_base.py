@@ -12,7 +12,7 @@ import httpx
 
 from ._signing import Signer
 from ._version import __version__
-from .environments import API_PREFIX, Environment, resolve
+from .environments import API_PREFIX, Environment, _resolve
 from .errors import OmnibookError, error_for
 
 DEFAULT_TIMEOUT = 10.0  # the gateway waits up to 5 s for the OMS; a client must wait longer
@@ -123,16 +123,18 @@ class BaseClient:
         :param token: a browser session token instead, sent as ``Authorization: Bearer``.
             Needed for the paths a key may not use: withdrawals, transfers and the vault.
         :param environment: ``"mainnet"`` (the default, ``trade-api.omnibook.xyz``),
-            ``"demo"``, or an :class:`Environment`.
+            ``"sandbox"`` (``test-api.omnibook.xyz``, test money), or an :class:`Environment`.
+            ``"demo"`` is retired and warns.
         :param base_url: the REST host, overriding the environment's (no path).
         :param timeout: seconds per request. Keep it above 5: the exchange waits up to 5 s for
             a write before it answers ``504 no_answer``.
         :param max_retries: retries of a *read* after a connection error or a 502/503.
             Writes are never retried by the client: see :class:`~omnibook.errors.NoAnswerError`.
         :param headers: extra headers on every request, such as Cloudflare Access's
-            ``CF-Access-Client-Id`` and ``CF-Access-Client-Secret`` for the demo hosts.
+            ``CF-Access-Client-Id`` and ``CF-Access-Client-Secret`` for a host behind it.
         """
-        self.environment = resolve(environment)
+        # stacklevel 4: the warning for the retired demo points at the caller of Client(...).
+        self.environment = _resolve(environment, stacklevel=4)
         self.base_url = (base_url or self.environment.rest_url).rstrip("/")
         self.signer = signer
         self.token = token

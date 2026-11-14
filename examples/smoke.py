@@ -3,7 +3,9 @@
     OMNIBOOK_LIVE=1 python examples/smoke.py
 
 With OMNIBOOK_API_KEY_ID and OMNIBOOK_PRIVATE_KEY_PATH set it also reads the account and
-opens the private feed.
+opens the private feed. OMNIBOOK_ENV picks the environment: mainnet (default) or sandbox.
+
+    OMNIBOOK_LIVE=1 OMNIBOOK_ENV=sandbox python examples/smoke.py
 """
 
 import os

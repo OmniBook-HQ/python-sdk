@@ -31,7 +31,8 @@ def test_default_environment_is_trade_api():
     client = Client()
     assert client.base_url == BASE
     assert client.environment.ws_auth_url == "wss://trade-ws-auth.omnibook.xyz/v1"
-    assert Client(environment="demo").base_url == "https://demo-api.omnibook.xyz"
+    with pytest.warns(DeprecationWarning, match="retired"):
+        assert Client(environment="demo").base_url == "https://demo-api.omnibook.xyz"
 
 
 def test_public_read_sends_no_credentials(signer):

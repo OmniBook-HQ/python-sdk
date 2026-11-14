@@ -66,15 +66,66 @@ Public reads (`get_markets`, `get_orderbook`, `get_trades` and the rest) need no
 | | REST | Public feed | Private feed |
 |---|---|---|---|
 | `mainnet` (default) | `https://trade-api.omnibook.xyz` | `wss://trade-ws.omnibook.xyz/v1` | `wss://trade-ws-auth.omnibook.xyz/v1` |
-| `demo` | `https://demo-api.omnibook.xyz` | `wss://demo-ws.omnibook.xyz/v1` | `wss://demo-ws-auth.omnibook.xyz/v1` |
+| `sandbox` | `https://test-api.omnibook.xyz` | `wss://test-ws.omnibook.xyz/v1` | `wss://test-ws-auth.omnibook.xyz/v1` |
 
 ```python
-client = Client(signer=signer, environment="demo",
-                headers={"CF-Access-Client-Id": "...", "CF-Access-Client-Secret": "..."})
+client = Client(signer=signer, environment="sandbox")               # or environment=omnibook.SANDBOX
 client = Client(signer=signer, base_url="http://127.0.0.1:8080")   # your own host
 ```
 
-The demo hosts sit behind Cloudflare Access, so send its service-token headers there.
+**`demo` is retired.** Its hosts (`demo-api.`, `demo-ws.`, `demo-ws-auth.omnibook.xyz`) no longer
+answer. `environment="demo"` and `omnibook.DEMO` still import, but emit a `DeprecationWarning`
+and will be removed in a future major version. Test on `sandbox` instead.
+
+`base_url` moves REST only; `client.websocket()` still opens the environment's feeds. To move
+everything, pass `environment=`: a name above, or your own `Environment(...)`.
+
+### Testing on the sandbox
+
+The sandbox is a copy of the exchange for testing trading programs, with **test money only**: no
+deposit, no withdrawal, no payout. It runs the same versions as mainnet. After a mainnet release it is
+updated by hand, so for a while it can run the previous version. An update is a restart and resets
+all data, like the daily reset. Paths, signing, error codes and WebSocket channels are the same as
+on mainnet, so a bot written for mainnet runs there with `environment="sandbox"` and a sandbox key.
+
+1. Sign up at [test.omnibook.xyz](https://test.omnibook.xyz). If the page asks for an invite code,
+   use the one in the banner at the top of the page. Every new account gets **$10,000 of test money**.
+2. Fill in your identity on the profile page (test details, not your real ones). As on mainnet,
+   an API key cannot be made without it (`403 identity_required`).
+3. Make an API key in **Settings → API keys**, as on mainnet, and pass it to `Signer`.
+
+Accounts and keys do not cross over: a mainnet key does not work on the sandbox, and a sandbox
+key does not work on mainnet.
+
+**Everything resets every day at 00:00 UTC, and at any other restart of the sandbox** (an update
+to mainnet's version, or recovery from a crash). Accounts, profiles, **API keys**, orders, fills,
+positions and balances are deleted, and the exchange starts again, empty. For up to about 10 minutes
+the API answers `503` with `Retry-After` and the WebSockets close; wait as asked rather than retrying
+in a tight loop. After that your old key gets `401 unauthenticated`, for good. No program can recover
+by itself: a person signs up again (a new $10,000), fills in the identity again and makes a new key.
+Plan for your bot to stop at 00:00 UTC, and at any other restart.
+
+Markets: **the BTC 5-minute strike ladder only** (series `BTC-5M`): each 5-minute window has 7
+strikes $50 apart, for example `BTC-5M-26NOV14-0955-T67400`. There is no 60-second series. A house
+liquidity bot quotes both sides of every open strike so the books are not empty; its quotes are
+not a fair price.
+
+The sandbox is one server: its latency is not mainnet's, it has no uptime guarantee, and it has its
+own per-IP rate limits, counted apart from mainnet's.
+
+With 2.0.0, which has no `SANDBOX`, build the same environment yourself:
+
+```python
+from omnibook import Client, Environment
+
+SANDBOX = Environment(
+    name="sandbox",
+    rest_url="https://test-api.omnibook.xyz",
+    ws_url="wss://test-ws.omnibook.xyz/v1",
+    ws_auth_url="wss://test-ws-auth.omnibook.xyz/v1",
+)
+client = Client(signer=signer, environment=SANDBOX)
+```
 
 ## Numbers are text
 
